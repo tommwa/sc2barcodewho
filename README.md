@@ -1,5 +1,7 @@
 # sc2BarcodeWho
 
+## (Not quite ready for use yet)
+
 #### This is an early release for early testing, don't expect it to have a high accuracy or be bug free yet. Also, you will probably need to re-load all of your replays in future improved versions if you choose to use this early version.
 
 sc2BarcodeWho is a tool to identify who barcodes are in the game StarCraft 2. 
