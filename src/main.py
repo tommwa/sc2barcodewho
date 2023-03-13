@@ -10,7 +10,14 @@ from sc2reader.engine.plugins.apm import APMTracker
 from features.evaluate_features import get_feature_relevances
 from classifiers.eval_classificatiton import test_classification_accuracy
 from database.DBMS import DBMS
-from utils.utils import get_toon_dict, load_config, get_most_recent_replay_filename, try_load_replay, get_replays_recursively, set_config
+from utils.utils import (
+    get_toon_dict,
+    load_config,
+    get_most_recent_replay_filename,
+    try_load_replay,
+    get_replays_recursively,
+    set_config,
+)
 from classifiers.classify import classify_replay_filepath
 from tkinter.filedialog import askopenfilename
 
@@ -83,14 +90,15 @@ class MainApplication:
         list_of_replay_paths, latest_replay_time = get_replays_recursively(folder_path=replay_dir)
         print(f"There are {len(list_of_replay_paths)} replays in this directory and it's sub-folders.")
         # Set it
-        config = load_config(self.program_path)
-        if messagebox.askyesno("Set path?",
-                               f"{replay_dir}\nIs this the path that you want to load replays from? All sub-folders will be included."):
-            config['options']["REPLAY_FOLDER_PATH"] = replay_dir
-            set_config(self.program_path, config=config)
+        self.config = load_config(self.program_path)
+        if messagebox.askyesno(
+            "Set path?",
+            f"{replay_dir}\nIs this the path that you want to load replays from? All sub-folders will be included.",
+        ):
+            self.config["options"]["REPLAY_FOLDER_PATH"] = replay_dir
+            set_config(self.program_path, config=self.config)
         else:
             print("Not setting the replay path.")
-        return replay_dir
 
     def when_closing_window(self):
         print("--------------------")
@@ -113,7 +121,7 @@ class MainApplication:
             self.frame_stop.pack()
             # Actually do the loading
             if not self.dbms:
-                self.dbms = DBMS(config, program_path, reset_before_loading=False)
+                self.dbms = DBMS(self.config, program_path, reset_before_loading=False)
             self.dbms.enter_all_replays_into_db(self.stop_event, False)
             # Put GUI back when it is finished.
             if not self.user_quit_event.is_set():
@@ -124,22 +132,22 @@ class MainApplication:
 
     def classify_most_recent_replay(self):
         if not self.dbms:
-            self.dbms = DBMS(config, program_path, reset_before_loading=False)
+            self.dbms = DBMS(self.config, program_path, reset_before_loading=False)
         # Classify most recent.
-        most_recent_replay_path = get_most_recent_replay_filename(config)[0]
+        most_recent_replay_path = get_most_recent_replay_filename(self.config)[0]
         classify_replay_filepath(
-            config, most_recent_replay_path, dbms=self.dbms, to_visualize=True, data_path=self.data_path
+            self.config, most_recent_replay_path, dbms=self.dbms, to_visualize=True, data_path=self.data_path
         )
-        if config["options"]["UPDATE_DB_AFTER_CLASSIFYING"]:
+        if self.config["options"]["UPDATE_DB_AFTER_CLASSIFYING"]:
             self.load_all_unloaded_replays()
         return
 
     def select_replay_then_classify(self):
         if not self.dbms:
-            self.dbms = DBMS(config, program_path, reset_before_loading=False)
+            self.dbms = DBMS(self.config, program_path, reset_before_loading=False)
         filename = askopenfilename()
         print(f"Will classify replay {filename}")
-        classify_replay_filepath(config, filename, dbms=self.dbms, to_visualize=True, data_path=self.data_path)
+        classify_replay_filepath(self.config, filename, dbms=self.dbms, to_visualize=True, data_path=self.data_path)
         return
 
     @staticmethod
@@ -157,7 +165,7 @@ class MainApplication:
             "Reset?",
             "Are you sure you want to reset this programs database? This means you will need to load all your replays again to use it.",
         ):
-            self.dbms = DBMS(config, program_path, reset_before_loading=True)
+            self.dbms = DBMS(self.config, program_path, reset_before_loading=True)
             self.dbms.save_to_file()
             print("Database reset.")
         else:
@@ -172,7 +180,7 @@ if __name__ == "__main__":
     config = load_config(program_path)
 
     # main code
-    most_recent_replay_path = get_most_recent_replay_filename(config)[0]
+    # most_recent_replay_path = get_most_recent_replay_filename(config)[0]
     app = MainApplication(config, program_path, data_path)
     time.sleep(5)
 
