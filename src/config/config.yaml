@@ -1,0 +1,12 @@
+options:
+  REPLAY_FOLDER_PATH: C:/Users/YOU-NEED-TO-PUT-YOUR-OWN-PATH-HERE/Documents/StarCraft II/Accounts
+  TOONS_TO_IGNORE:
+  - test_toon_to_ignore
+  - another_test_toon_to_ignore
+  NEIGHBOURS_TO_PRINT: 7
+  UPDATE_DB_AFTER_CLASSIFYING: false
+  RUN_TESTS: false
+  LOAD_OLD_REPLAYS: true
+hyperparams:
+  HIGHEST_N: 5
+  BREAKTIME: 10
