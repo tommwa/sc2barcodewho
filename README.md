@@ -85,7 +85,7 @@ If you already know how to do something you can skip the expandable text.
 > It will look something like:<br />
 > (don't just copy, remember to switch to your own folder path)
 > 
-> > C:\Windows\System32\cmd.exe /k C:\Users\YOUR-USERNAME\sc2BarcodeWho\scvenv\Scripts\activate
+> > C:\Windows\System32\cmd.exe /k "C:\Users\YOUR-USERNAME\sc2BarcodeWho\scvenv\Scripts\activate"
 > 
 > Again try the shortcut, it should now show that you are in the environment (scvenv).
 > 
@@ -99,7 +99,7 @@ If you already know how to do something you can skip the expandable text.
 > Finally, optionally, if you want to avoid writing the python src/main.py every time you run the program, you can add it to the shortcut.
 > To do this, once again edit the "Target:" and add at the end & python src\main.py, so for example for my folder it looks like:
 > 
-> > C:\Windows\System32\cmd.exe /k C:\Users\YOUR-USERNAME\sc2BarcodeWho\scvenv\Scripts\activate & python src\main.py
+> > C:\Windows\System32\cmd.exe /k "C:\Users\YOUR-USERNAME\sc2BarcodeWho\scvenv\Scripts\activate & python src\main.py"
 > 
 > Now when you use this shortcut it will automatically do everything and run the program. 
 > So now you can run the program and move on to the next point to test if the program is able to function.
