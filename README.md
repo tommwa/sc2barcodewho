@@ -41,15 +41,15 @@ If you already know how to do something you can skip the expandable text.
 > 
 > but change it to your path. After pressing enter, this path should be written in the command prompt window ready for your next command.
 > From here, we can type 
-> > virtualenv venv --python=python3.10
+> > py -m venv scvenv
 > 
-> which will create the virtual environment called "venv" with the Python version 3.10. 
-> After pressing enter, you can see that a folder called "venv" has been created inside your sc2BarcodeDecoder folder.
+> which will create the virtual environment called "scvenv" with the Python version 3.10. 
+> After pressing enter, you can see that a folder called "scvenv" has been created inside your sc2BarcodeDecoder folder.
 > 
 > Now we want to activate this virtual environment, this is simply done by running the activate file in this folder
-> > venv\Scripts\activate
+> > scvenv\Scripts\activate
 > 
-> After running this, you will see a (venv) added to your command prompt text. 
+> After running this, you will see a (scvenv) added to your command prompt text. 
 > Great! Your environment is now active, and we can install the required packages on it.
 > 
 > Keeping the command prompt window that is located in the right folder with the right environment activated, we run
@@ -80,14 +80,14 @@ If you already know how to do something you can skip the expandable text.
 > > C:\Windows\System32\cmd.exe
 > 
 > We want to ADD to this to activate the correct environment using /k and the full path to the activate file. 
-> You can open the file explorer, go to sc2BarcodeDecoder, enter the venv folder, enter Scripts and copy this path. 
+> You can open the file explorer, go to sc2BarcodeDecoder, enter the scvenv folder, enter Scripts and copy this path. 
 > Also add the "\activate" since this is the script that we want to run to activate the environment.
 > It will look something like:<br />
 > (don't just copy, remember to switch to your own folder path)
 > 
-> > C:\Windows\System32\cmd.exe /k C:\Users\YOUR-USERNAME\sc2BarcodeWho\venv\Scripts\activate
+> > C:\Windows\System32\cmd.exe /k C:\Users\YOUR-USERNAME\sc2BarcodeWho\scvenv\Scripts\activate
 > 
-> Again try the shortcut, it should now show that you are in the environment (venv).
+> Again try the shortcut, it should now show that you are in the environment (scvenv).
 > 
 > Finally, we can run the program by writing into this command prompt 
 > 
@@ -99,7 +99,7 @@ If you already know how to do something you can skip the expandable text.
 > Finally, optionally, if you want to avoid writing the python src/main.py every time you run the program, you can add it to the shortcut.
 > To do this, once again edit the "Target:" and add at the end & python src\main.py, so for example for my folder it looks like:
 > 
-> > C:\Windows\System32\cmd.exe /k C:\Users\YOUR-USERNAME\sc2BarcodeWho\venv\Scripts\activate & python src\main.py
+> > C:\Windows\System32\cmd.exe /k C:\Users\YOUR-USERNAME\sc2BarcodeWho\scvenv\Scripts\activate & python src\main.py
 > 
 > Now when you use this shortcut it will automatically do everything and run the program. 
 > So now you can run the program and move on to the next point to test if the program is able to function.
