@@ -1,8 +1,6 @@
 # sc2BarcodeWho
 
-## (Not quite ready for use yet)
-
-#### This is an early release for early testing, don't expect it to have a high accuracy or be bug free yet. Also, you will probably need to re-load all of your replays in future improved versions if you choose to use this early version.
+#### This is an early release for early testing, don't expect it to have a high accuracy or be bug free yet. Also, you will probably need to start over and re-load all of your replays in future improved versions if you choose to use this early version.
 
 sc2BarcodeWho is a tool to identify who barcodes are in the game StarCraft 2. 
 This tool is designed for pro players since they have thousands of games, 
@@ -13,15 +11,13 @@ The tool works by looking at previous replays to see which player the barcode's 
 ### Installation + Configuration
 
 Since the users of this tool will have a mix of backgrounds I will try to give additional details on the instructions in expandable form. 
-If you already know how to do something you can skip the expandable text.
+If you already know how to do something you can skip the expandable text. Note that the detailed instructions assume that you use Windows, but other users can also use the program, it will just require some basic computer science skills to translate the instructions to your operating system.
 
 <details><summary>Copy this repository to your computer</summary>
 
 
-> Easy version: Go to the main page of this repository on GitHub (perhaps just scroll up) and click the <font color="green">green</font> button that says Code and Download zip, then extract unzip it on your computer. That is it. You could for example put it under your user/sc2BarcodeWho.
->
-> Or if you want to use the command line, see Github's page: https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository
->
+> Easy version: Go to the main page of this repository on GitHub (perhaps just scroll up) and click the <font color="green">green</font> button that says Code and Download zip, then extract unzip it on your computer. That is it. You could for example put it under your user/sc2BarcodeWho. Make sure that the src folder (and README.md) etc is inside here; so user/sc2BarcodeWho/src should exist.
+
 
 </details>
 
@@ -37,14 +33,16 @@ If you already know how to do something you can skip the expandable text.
 > This can be done on Windows by opening the Command Prompt (search for it). 
 > Once opened, go to the folder for sc2BarcodeWho by typing in cd (which means change directory)
 > followed by the path to where you put it, for example
-> > cd C:\Users\replace_with_your_username\sc2BarcodeDecoder
+> > cd "C:\Users\replace_with_your_username\sc2BarcodeWho"
 > 
 > but change it to your path. After pressing enter, this path should be written in the command prompt window ready for your next command.
 > From here, we can type 
 > > py -m venv scvenv
 > 
-> which will create the virtual environment called "scvenv" with the Python version 3.10. 
+> which will create the virtual environment called "scvenv". (If you already have other versions of Python installed you can get the correct one for this environment using virtualenv instead of venv, this requires installing virtualenv.)
 > After pressing enter, you can see that a folder called "scvenv" has been created inside your sc2BarcodeDecoder folder.
+> 
+> (If this command did not run, giving a warning like "py is not a recognised command", then you might have forgotten to add Python to your PATH in the Python installation, or you might need to restart your pc. If you added it to PATH and restart and it still does not work google how to add Python to PATH.)
 > 
 > Now we want to activate this virtual environment, this is simply done by running the activate file in this folder
 > > scvenv\Scripts\activate
@@ -71,7 +69,10 @@ If you already know how to do something you can skip the expandable text.
 > Now this only opens up the command prompt, but we want it to go to the correct folder.
 > To achieve this, right-click the shortcut and select "properties".
 >  Under the "shortcut" tab you can set the "Start in:" field to the path of the sc2BarcodeWho folder. 
-> (e.g. for me it might be "C:\Users\FightingFrog\sc2BarcodeWho", adjust it to where you put it.)
+> For me it might be:
+> > "C:\Users\FightingFrog\sc2BarcodeWho"
+>
+> Adjust it to the folder that you put it in.
 > Now test the shortcut to see if it indeed writes out this folder when starting the command prompt.
 > 
 > Next, we want it to automatically activate our virtual environment. 
