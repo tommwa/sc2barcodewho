@@ -107,14 +107,20 @@ If you already know how to do something you can skip the expandable text.
 
 <details><summary>In the window that opened, click "Set replay folder" and choose the folder where your StarCraft replays are (including sub-folders) I recommend choosing the Accounts folder under your StarCraft II folder. (for example C:\Users\YOUR-USERNAME\Documents\StarCraft II\Accounts)</summary>
 
-TODO: add image to show.
+![SetReplayFolder](https://user-images.githubusercontent.com/48488386/226102991-fd5410b1-9958-4ea6-b99a-140518a635e9.PNG)
 </details>
 
 <details><summary>Now test if everything works as intended. In the window that opened, click "Load all unloaded replays". 
 Click the "stop loading replays" button after ~50 replays have been loaded. 
 Test if you can then "Classify the most recent replay".</summary>
 
-TODO: add image to show.
+![LoadAll](https://user-images.githubusercontent.com/48488386/226103034-18de4bc5-0f19-46cd-ab2e-6c09cd84851c.PNG)
+
+![Around50](https://user-images.githubusercontent.com/48488386/226103042-cb046b3e-5013-4afa-911b-9d08cb3f7442.PNG)
+
+![StopLoad](https://user-images.githubusercontent.com/48488386/226103046-9f1e20b8-b8e5-4b87-92dc-71da59679505.PNG)
+
+![ClassifyMostRecent](https://user-images.githubusercontent.com/48488386/226103100-ffac7f63-28ca-4799-a061-063cf247ea27.PNG)
 </details>
 
 <details><summary>Now that everything works, choose which replays to load by cleaning up your StarCraft folder.</summary>
