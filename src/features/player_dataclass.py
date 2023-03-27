@@ -20,12 +20,14 @@ class PlayerData:
         the replay sc2reader player object is not accessible.
         """
         assert ((player is not None) and (replay_id is not None)) or complete_data is not None
+        # If we need to extract the data from the replay.
         if (player is not None) and (replay_id is not None):
             self.toon_race = str((player.toon_handle, player.play_race))
             early_events = get_cut_events(player, "start", cutting_time=30)
             self.features = extract_features(player, early_events)
             self.n_grams = extract_n_grams(config, early_events, replay_id, self.toon_race)
             self.replay_id = replay_id
+        # If the data has already been extracted from the replay, we simply want to convert it to this class instance.
         elif complete_data is not None:
             self.features = complete_data["features"]
             self.n_grams = complete_data["n_grams"]

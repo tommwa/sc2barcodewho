@@ -35,14 +35,15 @@ def classify_PlayerData(config, toon_dict, player_data: PlayerData, dbms, to_vis
 
     # Get a dbms for race only.
     race = toon_race_to_race(player_data.toon_race)
-    dbms_means_race_filtered = dbms.get_race_filter_means(race)
-    n_players = len(dbms_means_race_filtered["n_gram"][0])  # 0 because this is a list with the n n-grams
+    dbms_stats_race_filtered = dbms.get_race_filter_stats(race)
+    n_players = len(dbms_stats_race_filtered["n_gram"][0])  # 0 because this is a list with the n n-grams
     if n_players < 10:
         print(
             "There are less than 10 players of this race in your database, perhaps you should consider loading more replays, see installation / config in README.md"
         )
-    n_gram_means_race = dbms_means_race_filtered["n_gram"]
-    features_mean_race = dbms_means_race_filtered["features"]
+    n_gram_means_race = dbms_stats_race_filtered["n_gram"]
+    features_mean_race = dbms_stats_race_filtered["features"]["mean"]
+    features_std_race = dbms_stats_race_filtered["features"]["std"]
 
     # a, b, toon_estimate, non_barcode_toon_estimate = find_nearest_neighbour(toon_dict, config, player_data, dbms, to_visualize)
     toon_estimate, non_barcode_toon_estimate = n_gram_classify(

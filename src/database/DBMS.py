@@ -98,17 +98,14 @@ class DBMS:
     def get_replay_features_copy(self):
         return copy.deepcopy(self.rep_feats.features)
 
-    def get_replay_mean_copy(self):
-        return copy.deepcopy(self.rep_feats.get_mean())
-
     def update_means(self, toon_races_to_update, max_games_to_use=1000000):
         self.n_grams.update_means(toon_races_to_update, max_games_to_use=max_games_to_use)
-        self.rep_feats.update_mean(toon_races_to_update)
+        self.rep_feats.update_stats()
 
-    def get_race_filter_means(self, filter_race):
+    def get_race_filter_stats(self, filter_race):
         return_dict = dict()
         return_dict["n_gram"] = self.n_grams.race_filter_mean(filter_race)
-        return_dict["features"] = self.rep_feats.race_filter_mean(filter_race)
+        return_dict["features"] = self.rep_feats.race_filter_stats(filter_race)
         return return_dict
 
     def remove_from_db(self, toon_race, replay_id):

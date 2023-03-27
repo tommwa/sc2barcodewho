@@ -19,7 +19,7 @@ def find_nearest_neighbour(toon_dict, player_data: PlayerData, dbms: DBMS, to_vi
     @return:
     """
     toon_race = player_data.toon_race
-    player_mean_features = dbms.rep_feats.get_mean()
+    player_mean_features = dbms.rep_feats.get_stats()["mean"]
 
     # sort out players of other races from df
     barcode_race = player_mean_features.loc[toon_race]["race"]
