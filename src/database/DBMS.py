@@ -12,6 +12,7 @@ from features.player_dataclass import PlayerData
 from utils.utils import get_replays_recursively, replay_is_relevant, try_load_replay
 from database.replay_hash import ReplayHash
 
+
 class DBMS:
     def __init__(self, config, program_path, reset_before_loading):
         # Basic variables
@@ -114,6 +115,7 @@ class DBMS:
          Requires quite a bit of computation since n_grams as well as replay_mean_features needs to be re-computed for
          this player.
         @param replay_id: The replay hash.
+        @param toon_race: (toon_handle, race)
         """
         # Do nothing if the replay is not in the database to begin with.
         if not self.rep_hash.in_db(replay_id):
@@ -158,7 +160,7 @@ class DBMS:
                 # Create a copy of the dbms and remove the current player's data.
                 copy_dbms = copy.deepcopy(self)
                 copy_dbms.remove_from_db(toon_race, replay_id)
-                copy_dbms.update_means(set([toon_race]), max_games_to_use=max_games_to_use)
+                copy_dbms.update_means({toon_race}, max_games_to_use=max_games_to_use)
                 # TODO: check if this still works after changing n_grams
                 yield player_data, copy_dbms
 

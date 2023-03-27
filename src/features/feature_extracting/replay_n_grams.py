@@ -7,7 +7,6 @@ from utils.utils import camera_distance
 
 
 def extract_n_grams(config, early_events, replay_id, toon_race):
-    # TODO: test this function when its done with an empty early_events list, should work. (just debug and load a new replay)
     n_grams = []
     # hyperparams
     # Transform events to ids: a list of a unique id (int) for each type of event.
