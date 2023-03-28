@@ -1,7 +1,6 @@
 import json
 import os
 import copy
-import pickle
 
 import pandas as pd
 import numpy as np
@@ -24,9 +23,12 @@ class ReplayFeatures:
     .
     for each player_toon.
 
-    self._stats: dict with keys "mean" and "std" that each have the value of a pd.DataFrame with toon_race as index and
+    self._stats: dict with keys "mean", "std", "general" that each have the value of a pd.DataFrame with toon_race as index and
     features as columns. "std" takes the standard deviation. In addition, the column "n_games" is added to tell how
     many games were used to calculate the mean or std. If there is only 1 game std will be NaN.
+
+    self._overall_stats: {average_mean: value, average_std: value} where average refers to the mean of the stat for
+    each player.
 
     self.stats_not_up_to_date_toon_races: This variable states which toon_races have un-updated mean data.
     The purpose is to allow changing the data multiple times without updating the mean, but we also
@@ -37,7 +39,8 @@ class ReplayFeatures:
     def __init__(self, data_path):
         self.data_path = data_path
         self.features = {}
-        self._stats = {"mean": pd.DataFrame(), "std": pd.DataFrame()}
+        self._stats = {"mean": pd.DataFrame(), "std": pd.DataFrame(), "general": pd.DataFrame()}
+        self._overall_stats = {"average_mean": {}, "average_std": {}}
         self.stats_not_up_to_date_toon_races = set()
 
     def update_stats(self):
@@ -47,6 +50,9 @@ class ReplayFeatures:
 
         toon_races_to_update = copy.copy(self.stats_not_up_to_date_toon_races)
 
+        toons = []
+        races = []
+        n_games_list = []
         for toon_race_to_update in toon_races_to_update:
             # If this player no longer exist in the database.
             if toon_race_to_update not in self.features:
@@ -67,21 +73,16 @@ class ReplayFeatures:
                 continue
 
             # Calculate stats for this player
+            n_games_list.append(n_games)
+            toons.append(data["toon"].iloc[0])  # The 0 is arbitrary, is the same for every game.
+            races.append(data["race"].iloc[0])
+
             number_data = data.select_dtypes(include=[np.number])
-            toon_handle = data["toon"].iloc[0]  # The 0 is arbitrary, is the same for every game.
-            race = data["race"].iloc[0]
-
             number_data_mean = pd.Series(number_data.mean(axis=0), name=toon_race_to_update)
-            number_data_mean["toon"] = toon_handle
-            number_data_mean["race"] = race
-            number_data_mean["n_games"] = n_games
-
             number_data_std = pd.Series(number_data.std(axis=0), name=toon_race_to_update)
-            number_data_std["toon"] = toon_handle
-            number_data_std["race"] = race
-            number_data_std["n_games"] = n_games
+            number_data_std.fillna(0, inplace=True)  # If there were only 1 game std becomes NaN, swap to 0.
 
-            # Update the self._stats variable
+            # Update self._stats.
             if toon_race_to_update in self._stats["mean"].index:
                 self._stats["mean"].loc[toon_race_to_update] = number_data_mean
             else:
@@ -93,11 +94,23 @@ class ReplayFeatures:
             self.stats_not_up_to_date_toon_races.discard(toon_race_to_update)
         assert self.stats_not_up_to_date_toon_races == set()
 
+        # Add general stats: race + toon + n_games
+        self._stats["general"] = pd.DataFrame({"race": races, "toon": toons, "n_games": n_games_list},
+                                              index=[str(toon_race) for toon_race in zip(toons, races)])
+
+        # Update self._overall_stats.
+        number_data = self._stats["mean"].select_dtypes(include=[np.number])
+        self._overall_stats["average_mean"] = number_data.mean().to_dict()
+        number_data = self._stats["std"].select_dtypes(include=[np.number])
+        self._overall_stats["average_std"] = number_data.mean().to_dict()
+
     def reset_files(self):
-        for filename in ["replay_features.json", "player_mean_features.json", "player_std_features.json"]:
+        for filename in ["replay_features.json", "player_mean_features.json", "player_std_features.json", "player_general_features.json"]:
             file_path = os.path.join(self.data_path, filename)
             with open(file_path, "w") as f:
                 f.write("{}")
+        with open(os.path.join(self.data_path, "overall_stats.json"), 'w') as f:
+            json.dump({"average_mean": {}, "average_std": {}}, f)
 
     def save_to_file(self):
         self.update_stats()
@@ -107,11 +120,16 @@ class ReplayFeatures:
             for key in self.features:
                 rep_f[key] = json.loads(self.features[key].to_json())  # to_json() makes a string, I want dict.
             json.dump(rep_f, outfile)
-        # Save stats.
+        # Save player stats.
         with open(os.path.join(self.data_path, "player_mean_features.json"), "w") as outfile:
             json.dump(self._stats["mean"].to_json(), outfile)
         with open(os.path.join(self.data_path, "player_std_features.json"), "w") as outfile:
             json.dump(self._stats["std"].to_json(), outfile)
+        with open(os.path.join(self.data_path, "player_general_features.json"), "w") as outfile:
+            json.dump(self._stats["general"].to_json(), outfile)
+        # Save overall stats.
+        with open(os.path.join(self.data_path, "overall_stats.json"), "w") as outfile:
+            json.dump(self._overall_stats, outfile)
 
     def load_from_file(self):
         # Load features.
@@ -135,6 +153,16 @@ class ReplayFeatures:
             self._stats["std"] = pd.DataFrame(json_object)
         else:
             self._stats["std"] = pd.read_json(json_object)
+        # Load general.
+        with open(os.path.join(self.data_path, "player_general_features.json"), "r") as f:
+            json_object = json.load(f)
+        if json_object == {}:  # Separate empty case since for some reason this crashes the read_json.
+            self._stats["general"] = pd.DataFrame(json_object)
+        else:
+            self._stats["general"] = pd.read_json(json_object)
+        # Load overall stats.
+        with open(os.path.join(self.data_path, "overall_stats.json"), 'r') as f:
+            self._overall_stats = json.load(f)
 
     def enter_replay(self, player_data):
         self.stats_not_up_to_date_toon_races.add(player_data.toon_race)
@@ -162,15 +190,26 @@ class ReplayFeatures:
             self.update_stats()
             return self._stats
 
+    def get_overall_stats(self):
+        if len(self.stats_not_up_to_date_toon_races) == 0:
+            return self._overall_stats
+        else:
+            self.update_stats()
+            return self._overall_stats
+
     def drop_columns(self, columns_to_drop):
         for stat in self._stats:
             self._stats[stat] = self._stats[stat].drop(columns_to_drop, axis=1)
         for toon_race in self.features:
             self.features[toon_race] = self.features[toon_race].drop(columns_to_drop, axis=1)
+        for d in self._overall_stats.values():
+            for col in columns_to_drop:
+                d.pop(col)
 
     def race_filter_stats(self, filter_race):
         self.update_stats()
         filtered = dict()
         for stat in self._stats:
-            filtered[stat] = self._stats[stat][[toon_race_to_race(toon_race) == filter_race for toon_race in self._stats[stat].index]]
+            filtered[stat] = self._stats[stat][
+                [toon_race_to_race(toon_race) == filter_race for toon_race in self._stats[stat].index]]
         return filtered
