@@ -24,8 +24,9 @@ class ReplayFeatures:
     for each player_toon.
 
     self._stats: dict with keys "mean", "std", "general" that each have the value of a pd.DataFrame with toon_race as index and
-    features as columns. "std" takes the standard deviation. In addition, the column "n_games" is added to tell how
-    many games were used to calculate the mean or std. If there is only 1 game std will be NaN.
+    features as columns. "std" takes the standard deviation. If there is only 1 game std will be 0. "generaL" holds the
+    columns toon / race / n_games where n_games is the number of games from this player which helps Bayesian type
+    classifier know accurate the mean and std are.
 
     self._overall_stats: {average_mean: value, average_std: value} where average refers to the mean of the stat for
     each player.
@@ -198,7 +199,7 @@ class ReplayFeatures:
             return self._overall_stats
 
     def drop_columns(self, columns_to_drop):
-        for stat in self._stats:
+        for stat in ["mean", "std"]:
             self._stats[stat] = self._stats[stat].drop(columns_to_drop, axis=1)
         for toon_race in self.features:
             self.features[toon_race] = self.features[toon_race].drop(columns_to_drop, axis=1)

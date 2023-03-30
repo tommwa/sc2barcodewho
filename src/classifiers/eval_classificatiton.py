@@ -22,7 +22,10 @@ def test_classification_accuracy(
     profile_i = 0
     for test_player_data, test_dbms in dbms.get_test_replay_db_pairs(n_sample_games, max_games_to_use):
         n_trials += 1
+        # Start by removing the features that we wanted to test without.
         test_dbms.rep_feats.drop_columns(columns_to_remove)
+        for col in columns_to_remove:
+            test_player_data.features.pop(col)
 
         toon_estimate, non_barcode_toon_estimate = classify_PlayerData(
             config, toon_dict, test_player_data, test_dbms, to_visualize=False

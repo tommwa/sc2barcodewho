@@ -171,11 +171,6 @@ def n_gram_classify(config, toon_dict, player_data: PlayerData, n_gram_means, to
     # Sort by distance with the lowest distance first.
     results_df = results_df.sort_values(by=["dist"])
 
-    # Sort out self (if in db).
-    toon_race = player_data.toon_race
-    if toon_race in results_df.index:
-        results_df.drop(toon_race, inplace=True)
-
     # find toon estimate
     toon_estimate = results_df.iloc[0].name
     if len(results_df) == 0:

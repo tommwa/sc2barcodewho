@@ -154,7 +154,7 @@ class DBMS:
                     player_n_grams.append(n_gram_df[n_gram_df["replay_id"] == replay_id])
                 player_data_dict["n_grams"] = player_n_grams
                 feat_series = self.rep_feats.features[toon_race].loc[replay_id]
-                player_data_dict["features"] = pd.DataFrame([feat_series], index=[toon_race])
+                player_data_dict["features"] = feat_series.to_dict()
                 player_data = PlayerData(self.config, complete_data=player_data_dict)
 
                 # Create a copy of the dbms and remove the current player's data.

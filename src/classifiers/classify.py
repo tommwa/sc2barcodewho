@@ -1,4 +1,4 @@
-from classifiers.nearest_neighbour import find_nearest_neighbour
+from classifiers.nearest_neighbour import mean_feature_classify
 from classifiers.n_gram_classifier import n_gram_classify
 from utils.utils import toon_race_to_race, toon_race_to_toon, get_toon_dict, replay_is_relevant, try_load_replay
 from features.player_dataclass import PlayerData
@@ -33,7 +33,7 @@ def classify_PlayerData(config, toon_dict, player_data: PlayerData, dbms, to_vis
     @return: estimate, non_barcode_estimate.
     """
 
-    # Get a dbms for race only.
+    # N-gram classify
     race = toon_race_to_race(player_data.toon_race)
     dbms_stats_race_filtered = dbms.get_race_filter_stats(race)
     n_players = len(dbms_stats_race_filtered["n_gram"][0])  # 0 because this is a list with the n n-grams
@@ -42,13 +42,20 @@ def classify_PlayerData(config, toon_dict, player_data: PlayerData, dbms, to_vis
             "There are less than 10 players of this race in your database, perhaps you should consider loading more replays, see installation / config in README.md"
         )
     n_gram_means_race = dbms_stats_race_filtered["n_gram"]
-    features_mean_race = dbms_stats_race_filtered["features"]["mean"]
-    features_std_race = dbms_stats_race_filtered["features"]["std"]
 
-    # a, b, toon_estimate, non_barcode_toon_estimate = find_nearest_neighbour(toon_dict, config, player_data, dbms, to_visualize)
     toon_estimate, non_barcode_toon_estimate = n_gram_classify(
         config, toon_dict, player_data, n_gram_means_race, to_visualize=to_visualize
     )
+
+    # Feature classify
+    features_mean_race = dbms_stats_race_filtered["features"]["mean"]
+    features_std_race = dbms_stats_race_filtered["features"]["std"]
+    features_general_race = dbms_stats_race_filtered["features"]["general"]
+    features_overall_stats = dbms.rep_feats.get_overall_stats()
+    feat_toon_estimate, feat_non_barcode_toon_estimate = mean_feature_classify(config, toon_dict, player_data,
+                                                                               features_mean_race,
+                                                                               to_visualize=to_visualize)
+
 
     if to_visualize:
         toon = toon_race_to_toon(player_data.toon_race)

@@ -1,85 +1,85 @@
-import numpy as np
-import os
-import json
-import pandas as pd
-import matplotlib.pyplot as plt
-from collections import defaultdict
+import copy
 
-from utils.utils import get_toon_dict, is_barcode, toon_race_to_toon
-from features.feature_normalizing import scale_df
+import numpy as np
+import pandas as pd
+
+from utils.utils import get_toon_dict, is_barcode, toon_race_to_toon, is_toon_barcode
 from features.utils_features import add_name_to_toon_dict
-from database.DBMS import DBMS
 from features.player_dataclass import PlayerData
 
 
-def find_nearest_neighbour(toon_dict, player_data: PlayerData, dbms: DBMS, to_visualize=True):
+def mean_feature_classify(config, toon_dict, player_data: PlayerData, features_mean: pd.DataFrame, to_visualize=True):
     """
-    @param player_data: PlayerData instance.
-    @param dbms: DBMS instance
-    @return:
+    Classifies a barcode by finding the player with mean features closest in L2-space to the barcode's.
+    Scales the features to min 0 and max 1.
+
+    Only uses a single game from the barcode given by PlayerData.
+
+    @return: toon_estimate, non_barcode_toon_estimate
     """
-    toon_race = player_data.toon_race
-    player_mean_features = dbms.rep_feats.get_stats()["mean"]
+    # check that there are at least 2 players with feature mean.
+    n_players = len(features_mean)
+    if n_players < 2:
+        print("You're trying to classify between less than 2 players in the database. Load more replays.")
+        return False, False
 
-    # sort out players of other races from df
-    barcode_race = player_mean_features.loc[toon_race]["race"]
-    player_mean_features = player_mean_features.drop(
-        player_mean_features[player_mean_features["race"] != barcode_race].index
-    )
+    # Break apart the barcode's player_data into race / toon / numeric features.
+    bc_toon = player_data.features["toon"]
+    bc_race = player_data.features["race"]
+    bc_toon_race = str((bc_toon, bc_race))
+    bc_features = pd.Series(player_data.features)
+    bc_features.drop(["toon", "race"], inplace=True)
+    bc_features = pd.to_numeric(bc_features)
 
-    # first scale the data to mean 1 (only suitable as long as all the features are positive)
-    player_mean_features = scale_df(player_mean_features)
-    # TODO: the test data is not being scaled now, need to either scale with it or without it and then save the scaling coefficients to scale the test data too..
+    # Create results_df, a copy of features_mean that will be scaled and get some columns added to help with the result.
+    results_df = copy.copy(features_mean)
 
-    # separate text data
-    text_data = player_mean_features.select_dtypes(exclude=[np.number])
-    player_mean_features = player_mean_features.select_dtypes(include=[np.number])
-    # find nearest neighbour
-    # first calculate square distances to the barcode
-    diff = player_mean_features - player_data.features.select_dtypes(include=[np.number])
-    sq_dist = pd.Series((diff * diff).sum(axis=1), name="sq_dist")
-    player_mean_features = pd.concat([player_mean_features, sq_dist], axis=1)
-    player_mean_features = player_mean_features.sort_values("sq_dist")
-    # add back text data
-    player_mean_features = pd.concat([player_mean_features, text_data], axis=1)
-    player_mean_features_with_sq = player_mean_features.copy()
+    # First scale data to have min 0 and max 1.
+    min_feat = features_mean.min()
+    max_feat = features_mean.max()
+    std = features_mean.std()
+    # Also remove any columns with standard deviation 0, should typically not happen, but maybe I will e.g. use a rare feature that is almost always 0.
+    results_df = features_mean.loc[:, std != 0]
+    min_feat = min_feat.loc[std != 0]
+    max_feat = max_feat.loc[std != 0]
+    bc_features = bc_features.loc[std != 0]
+    std = std[std != 0]
+    results_df = (results_df - min_feat) / (max_feat - min_feat)
+    # Scale the barcode's player_data with the same scaling factors.
+    bc_features = (bc_features - min_feat) / (max_feat - min_feat)
+    bc_features.clip(lower=-0.2, upper=1.2, inplace=True)  # Clipping because we never want 1 extreme value of a feature to completely dominate the classification result.
 
-    # we also want to return the toon of our guess
-    nearest_toon_race = player_mean_features.index[0]  # take second value because the first is the barcode itself.
+    # Add the distance to the barcode as a column to the mean df.
+    dist = results_df - bc_features
+    sq_dist = pd.Series((dist * dist).sum(axis=1), name="sq_dist")
+    results_df = pd.concat([results_df, sq_dist], axis=1)
 
-    # We also want the nearest non-barcode. Eg if someone has multiple barcodes it's useless to classify a barcode as a barcode.
-    nearest_non_barcode_toon_race = nearest_toon_race
-    i = 1
-    all_barcodes = True
-    while all_barcodes:
-        toon = toon_race_to_toon(nearest_non_barcode_toon_race)
-        names = toon_dict[toon]  # keep in mind each toon saves a list of the history of all their names.
-        for name in names:
-            if not is_barcode(name):
-                all_barcodes = False
-        if all_barcodes:
-            i += 1
-            nearest_non_barcode_toon_race = player_mean_features.index[
-                i
-            ]  # will crash if there's only barcodes in the database which I don't mind for this test function
+    # Sort the dataframe.
+    results_df.sort_values("sq_dist", inplace=True)
 
-    # save only top neightbours
-    player_mean_features = player_mean_features.iloc[: options["neighbours_to_print"]]
-    # make a return list of top people, where we list [[names, sq_dist], ...]
-    return_list = []
-    for key in player_mean_features.index:
-        toon = player_mean_features["toon"][key]
-        names = toon_dict[toon]
-        sq_dist = player_mean_features.loc[key]["sq_dist"]
-        return_list.append([names, sq_dist])
+    # Get the closest player (could be a barcode).
+    results_df["toon"] = results_df.index.map(toon_race_to_toon)
+    toon_estimate = results_df.index[0]
+    toon_estimate_dist = results_df.iloc[0]["sq_dist"]
 
-    # finally visualize the result if requested to
+    # Remove all barcodes from the df.
+    results_df["is_barcode"] = [is_toon_barcode(toon, toon_dict) for toon in results_df["toon"]]
+    results_df.drop(results_df[results_df["is_barcode"] == True].index, inplace=True)
+    non_barcode_toon_estimate = results_df.index[0]
+
+    # Visualize the top of this df.
+    results_df["names"] = results_df["toon"].map(toon_dict)
     if to_visualize:
-        print("Nearest Neighbours (+sq dist):")
-        for e in return_list:
-            print(e)
-        print("----------------------")
-    return return_list, player_mean_features_with_sq, nearest_toon_race, nearest_non_barcode_toon_race
+        print("--------------------")
+        print("Simple feature classification result:")
+        print(f"closest non-barcode: {toon_dict[toon_race_to_toon(non_barcode_toon_estimate)]}")
+        print(f"closest distance INCLUDING other barcodes: {toon_estimate_dist:.6f}")
+        print("Table results:")
+        print(results_df[["names", "sq_dist"]].head(config["options"]["NEIGHBOURS_TO_PRINT"]))
+        print("--------------------")
+
+    # Return both the nearest and non-barcode nearest.
+    return toon_estimate, non_barcode_toon_estimate
 
 
 def get_accuracy_of_nearest_neighbour(
@@ -139,18 +139,13 @@ def get_accuracy_of_nearest_neighbour(
                 ]
                 # now use this temporary fake data to find nearest neighbour of the fake one.
                 (
-                    return_list,
-                    player_mean_features_with_sq,
                     nearest_toon_race,
                     nearest_non_barcode_toon_race,
-                ) = find_nearest_neighbour(program_path, temp_player_mean_features, fake_toon, to_visualize=False)
+                ) = mean_feature_classify(program_path, temp_player_mean_features, fake_toon, to_visualize=False)
                 if nearest_non_barcode_toon_race == toon_race:
                     n_correct += 1
                 else:
                     n_incorrect += 1
-                # TODO: also calculate goal_distances and root_sq dist for histogram plots
-                goal_distances.append(player_mean_features_with_sq.at[toon_race, "sq_dist"])
-                closest_sq_distances.append(player_mean_features_with_sq.iloc[1]["sq_dist"])
 
     acc = n_correct / (n_correct + n_incorrect)
     return acc, (n_correct + n_incorrect)

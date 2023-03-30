@@ -64,6 +64,16 @@ def is_barcode(name):
     return True
 
 
+def is_toon_barcode(toon, toon_dict):
+    names = toon_dict[toon]
+    bc = True
+    for name in names:
+        if not is_barcode(name):
+            bc = False
+    return bc
+
+
+
 def get_toon_dict(data_path):
     dict_path = os.path.join(data_path, "toon_handle_to_names.txt")
     with open(dict_path, "r") as infile:
@@ -175,3 +185,4 @@ def try_load_replay(replay_path):
     except Exception:
         print(f"Unable to parse the replay with sc2reader. The given filepath was: {replay_path}")
         return False
+

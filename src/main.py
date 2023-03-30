@@ -96,6 +96,8 @@ class MainApplication:
             f"{replay_dir}\nIs this the path that you want to load replays from? All sub-folders will be included.",
         ):
             self.config["options"]["REPLAY_FOLDER_PATH"] = replay_dir
+            if self.dbms is not False:
+                self.dbms.config["options"]["REPLAY_FOLDER_PATH"] = replay_dir
             set_config(self.program_path, config=self.config)
         else:
             print("Not setting the replay path.")
@@ -204,7 +206,7 @@ if __name__ == "__main__":
             dbms,
             n_sample_games=1,
             columns_to_remove=features_to_drop,
-            profile_mode=True,
+            profile_mode=False,
             max_games_to_use=5,
         )
         print(f"acc: {acc} over {n_trials} trials")
