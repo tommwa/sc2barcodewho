@@ -19,6 +19,9 @@ def classify_replay_filepath(config, replay_filepath, dbms, to_visualize, data_p
         return False, False
     for player in replay.players:
         player_data = PlayerData(config, player=player, replay_id=replay_hash)
+        if player_data.features["toon"] in config["options"]["TOONS_TO_IGNORE"]:
+            print(f"Ignoring player {toon_dict[player_data.features['toon']]} because their toon ({player_data.features['toon']}) is set in config.yaml to be ignored.")
+            continue
         classify_PlayerData(config, toon_dict, player_data, dbms, to_visualize)
 
 
