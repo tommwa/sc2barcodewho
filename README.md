@@ -148,7 +148,11 @@ and allows the user to only load replays that are newer than the most recent one
 This is a good default setting, 
 but then you have to remember to change it back when adding replay packs or other older replays. 
 This setting if found in the src/config/config.yaml file under "options" -> "LOAD_OLD_REPLAYS" which is set to True or False.
-
+- Since the tool does not know who is using it, it will have to classify both players in a replay including yourself.
+But you can tell it to stop classifying yourself by entering your own toon into config.yaml in options -> TOONS_TO_IGNORE.
+You can find your own toon by running the program and pressing the "Find Toons" button and selecting a replay that you
+are in. You can then write this manually in the src/config/config.yaml file. 
+Note that you have a different toon for each account and server.
 
 ### Known issues
 
