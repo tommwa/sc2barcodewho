@@ -2,6 +2,7 @@ from classifiers.nearest_neighbour import mean_feature_classify
 from classifiers.n_gram_classifier import n_gram_classify
 from utils.utils import toon_race_to_race, toon_race_to_toon, get_toon_dict, replay_is_relevant, try_load_replay
 from features.player_dataclass import PlayerData
+from features.evaluate_features import get_feature_relevances
 from database.replay_hash import ReplayHash
 
 
@@ -21,7 +22,8 @@ def classify_replay_filepath(config, replay_filepath, dbms, to_visualize, data_p
         classify_PlayerData(config, toon_dict, player_data, dbms, to_visualize)
 
 
-def classify_PlayerData(config, toon_dict, player_data: PlayerData, dbms, to_visualize: bool):
+def classify_PlayerData(config, toon_dict, player_data: PlayerData, dbms, to_visualize: bool,
+                        pre_calculated_feature_relevances=False):
     """
     Performs the classification of one of the players in a replay using its player_data and a given dbms.
 
@@ -30,6 +32,8 @@ def classify_PlayerData(config, toon_dict, player_data: PlayerData, dbms, to_vis
     @param to_visualize: Whether to create visualizations of the result.
     @param player_data: PlayerData instance.
     @param dbms: DBMS instance.
+    @param pre_calculated_feature_relevances: optionally input these pre-calculated. It makes a lot of sense to
+    calculate it here in natural use, but it will be repetitive and slow down the accuracy tests too much.
     @return: estimate, non_barcode_estimate.
     """
 
@@ -48,12 +52,16 @@ def classify_PlayerData(config, toon_dict, player_data: PlayerData, dbms, to_vis
     )
 
     # Feature classify
+    if pre_calculated_feature_relevances is False:
+        feature_relevances = get_feature_relevances(dbms.rep_feats.features)
+    else:
+        feature_relevances = pre_calculated_feature_relevances
     features_mean_race = dbms_stats_race_filtered["features"]["mean"]
     features_std_race = dbms_stats_race_filtered["features"]["std"]
     features_general_race = dbms_stats_race_filtered["features"]["general"]
     features_overall_stats = dbms.rep_feats.get_overall_stats()
     feat_toon_estimate, feat_non_barcode_toon_estimate = mean_feature_classify(config, toon_dict, player_data,
-                                                                               features_mean_race,
+                                                                               features_mean_race, feature_relevances,
                                                                                to_visualize=to_visualize)
 
 
@@ -66,4 +74,4 @@ def classify_PlayerData(config, toon_dict, player_data: PlayerData, dbms, to_vis
             print(f"Name history of this account: None")
         print("---------------------------------------------------------------------------")
 
-    return toon_estimate, non_barcode_toon_estimate
+    return feat_toon_estimate, feat_non_barcode_toon_estimate

@@ -8,7 +8,8 @@ from features.utils_features import add_name_to_toon_dict
 from features.player_dataclass import PlayerData
 
 
-def mean_feature_classify(config, toon_dict, player_data: PlayerData, features_mean: pd.DataFrame, to_visualize=True):
+def mean_feature_classify(config, toon_dict, player_data: PlayerData, features_mean: pd.DataFrame, feature_relevances,
+                          to_visualize=True):
     """
     Classifies a barcode by finding the player with mean features closest in L2-space to the barcode's.
     Scales the features to min 0 and max 1.
@@ -49,6 +50,11 @@ def mean_feature_classify(config, toon_dict, player_data: PlayerData, features_m
     bc_features = (bc_features - min_feat) / (max_feat - min_feat)
     bc_features.clip(lower=-0.2, upper=1.2, inplace=True)  # Clipping because we never want 1 extreme value of a feature to completely dominate the classification result.
 
+    # Re-scale according to square root of feature relevances to put extra emphasis on the better features.
+    feature_relevances_sqrt = np.sqrt(feature_relevances)
+    bc_features = bc_features / feature_relevances_sqrt
+    results_df = results_df / feature_relevances_sqrt
+
     # Add the distance to the barcode as a column to the mean df.
     dist = results_df - bc_features
     sq_dist = pd.Series((dist * dist).sum(axis=1), name="sq_dist")
@@ -81,71 +87,3 @@ def mean_feature_classify(config, toon_dict, player_data: PlayerData, features_m
     # Return both the nearest and non-barcode nearest.
     return toon_estimate, non_barcode_toon_estimate
 
-
-def get_accuracy_of_nearest_neighbour(
-    program_path, replay_features, player_mean_features, n_games_known, n_sample_games
-):
-    """
-    calculates the accuracy (and some other test measures) of nearest_neighbour. The idea is to loop over each player
-    and keep n_games_known games of theirs to set the mean features, and then perform n_single_barcode_trials by
-    anonymizing some of their other replays and checking if they are correctly classified by the nearest_neighbour
-    classifier.
-    @param replay_features: dict of pandas DataFrames. key = "(player-race)"
-    @param player_mean_features: pandas DataFrame, rows = "(player-race)", columns = mean features.
-    @param n_games_known: number of games that are used to set the player mean.
-    If there are noot enough replays the player-race is skipped.
-    @param n_sample_games: number of anonymized games to test the accuracy, need to be separate from the games
-    from n_games_known. If there are not enough games the player-race is skipped.
-    @return: acc, n_trials, goal_distances, closest_sq_distances. n_trials is the number of tests that were able to be
-    made. goal_distances is a list of the square distances estimated by the classifier between the mean features and the
-    test. closest_sq_distances is the distance to the closest neighbour, this will equal goal_distance if the
-    classification was correct.
-    """
-    # prep
-    toon_dict = get_toon_dict(program_path)
-    min_games_required_to_test = n_games_known + n_sample_games
-    n_correct = 0
-    n_incorrect = 0
-    goal_distances = []
-    closest_sq_distances = []
-    for toon_race, feature_df in replay_features.items():
-        # sort out barcodes, this helps combat the issue of accuracy never getting above ~50% if people have a barcode and real account
-        toon = toon_race_to_toon(toon_race)
-        names = toon_dict[toon]
-        any_barcodes = False
-        for name in names:
-            if is_barcode(name):
-                any_barcodes = True
-        if any_barcodes:
-            continue
-
-        # calculate length of feature_df
-        n_games = feature_df.shape[0]
-        if n_games >= min_games_required_to_test:
-            # update the mean values pretending we only have these n_known_games known features
-            temp_player_mean_features = player_mean_features.copy()
-            known_features = feature_df.iloc[0:n_games_known]
-            known_features_mean = known_features.select_dtypes(include=[np.number]).mean()
-            for feature in known_features_mean.index:
-                temp_player_mean_features.at[toon_race, feature] = known_features_mean[feature]
-            # add each of the test datapoints to the mean dict with a fake test toon.
-            unknown_features = feature_df.iloc[n_games_known : (n_games_known + n_sample_games)]
-            for idx, row in unknown_features.iterrows():
-                fake_toon = "FakeTestToonRace645734545"  # random-ish number.. why not.
-                add_name_to_toon_dict(program_path, fake_toon, name="FakeName39343466762346346")
-                row["toon"] = fake_toon
-                temp_player_mean_features.loc[fake_toon] = row.loc[
-                    [f for f in row.index if f in temp_player_mean_features.columns]
-                ]
-                # now use this temporary fake data to find nearest neighbour of the fake one.
-                (
-                    nearest_toon_race,
-                    nearest_non_barcode_toon_race,
-                ) = mean_feature_classify(program_path, temp_player_mean_features, fake_toon, to_visualize=False)
-                if nearest_non_barcode_toon_race == toon_race:
-                    n_correct += 1
-                else:
-                    n_incorrect += 1
-
-    acc = n_correct / (n_correct + n_incorrect)
-    return acc, (n_correct + n_incorrect)
