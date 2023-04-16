@@ -65,17 +65,26 @@ class MainApplication:
         )
         self.button_classify_choose.pack(padx=10, pady=20)
         self.button_find_toons = tk.Button(
-            self.frame_main, text="Find Toons", font=("Arial", 14), command=self.find_toons
+            self.frame_main,
+            text="Find Toons",
+            font=("Arial", 14),
+            command=self.find_toons,
         )
         self.button_find_toons.pack(padx=10, pady=20)
         self.button_reset = tk.Button(
-            self.frame_main, text="Reset Database", font=("Arial", 14), command=self.reset_database
+            self.frame_main,
+            text="Reset Database",
+            font=("Arial", 14),
+            command=self.reset_database,
         )
         self.button_reset.pack(padx=10, pady=150)
 
         self.frame_stop = tk.Frame()
         self.button_stop = tk.Button(
-            self.frame_stop, text="Stop loading into database", font=("Arial", 14), command=self.stop_loading
+            self.frame_stop,
+            text="Stop loading into database",
+            font=("Arial", 14),
+            command=self.stop_loading,
         )
         self.button_stop.pack(padx=10, pady=20)
 
@@ -87,8 +96,12 @@ class MainApplication:
         replay_dir = tk.filedialog.askdirectory()
         print(f"You selected the directory: {replay_dir}")
         # Check how many replays there are in the dir.
-        list_of_replay_paths, latest_replay_time = get_replays_recursively(folder_path=replay_dir)
-        print(f"There are {len(list_of_replay_paths)} replays in this directory and it's sub-folders.")
+        list_of_replay_paths, latest_replay_time = get_replays_recursively(
+            folder_path=replay_dir
+        )
+        print(
+            f"There are {len(list_of_replay_paths)} replays in this directory and it's sub-folders."
+        )
         # Set it
         self.config = load_config(self.program_path)
         if messagebox.askyesno(
@@ -138,7 +151,11 @@ class MainApplication:
         # Classify most recent.
         most_recent_replay_path = get_most_recent_replay_filename(self.config)[0]
         classify_replay_filepath(
-            self.config, most_recent_replay_path, dbms=self.dbms, to_visualize=True, data_path=self.data_path
+            self.config,
+            most_recent_replay_path,
+            dbms=self.dbms,
+            to_visualize=True,
+            data_path=self.data_path,
         )
         if self.config["options"]["UPDATE_DB_AFTER_CLASSIFYING"]:
             self.load_all_unloaded_replays()
@@ -149,7 +166,13 @@ class MainApplication:
             self.dbms = DBMS(self.config, program_path, reset_before_loading=False)
         filename = askopenfilename()
         print(f"Will classify replay {filename}")
-        classify_replay_filepath(self.config, filename, dbms=self.dbms, to_visualize=True, data_path=self.data_path)
+        classify_replay_filepath(
+            self.config,
+            filename,
+            dbms=self.dbms,
+            to_visualize=True,
+            data_path=self.data_path,
+        )
         return
 
     @staticmethod
@@ -184,7 +207,6 @@ if __name__ == "__main__":
     # main code
     # most_recent_replay_path = get_most_recent_replay_filename(config)[0]
     app = MainApplication(config, program_path, data_path)
-    time.sleep(5)
 
     # test
     if config["options"]["RUN_TESTS"]:
