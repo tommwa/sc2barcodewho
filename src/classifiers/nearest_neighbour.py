@@ -12,8 +12,8 @@ def mean_feature_classify(config, toon_dict, player_data: PlayerData, features_m
                           to_visualize=True):
     """
     Classifies a barcode by finding the player with mean features closest in L2-space to the barcode's.
-    Scales the features to min 0 and max 1.
-
+    Scales the features to min 0 and max 1. Then re-scale according to square root of feature relevances to put extra emphasis on the better features.
+    
     Only uses a single game from the barcode given by PlayerData.
 
     @return: toon_estimate, non_barcode_toon_estimate
