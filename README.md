@@ -178,7 +178,7 @@ Note that you have a different toon for each account and server.
 <details>
   <summary>Higher accuracy</summary>
 
-> There is a lot of potential to make this tool better, it is just a matter of time put in. Currently, I have three completely independent ideas for how to classify, and the end goal is to present results from these three separately. The reason for separate models as opposed to combining their result is that at least two of them can be tricked by tricky players that know how this tool works. Right now only one of these methods are used. With all of these three models it would be a massive waste of time for a pro player to figure out how to trick this tool, if even possible without disrupting their play.
+> There is a lot of potential to make this tool better, it is just a matter of time put in. Currently, I have three completely independent ideas for how to classify, and the end goal is to present results from these three separately. The reason for separate models as opposed to combining their result is that at least two of them can be tricked by tricky players that know how this tool works. Right now only two of these methods are used. With all of these three models it would be a massive waste of time for a pro player to figure out how to trick this tool, if even possible without disrupting their play.
  
 </details>
 
