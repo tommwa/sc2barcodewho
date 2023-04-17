@@ -1,6 +1,6 @@
 # sc2BarcodeWho
 
-#### This is an early release for early testing, don't expect it to have a high accuracy or be bug free yet. Also, you will probably need to start over and re-load all of your replays in future improved versions if you choose to use this early version.
+#### This is an early release for early testing, don't expect it to have a very high accuracy or be bug free yet. Also, you will probably need to start over and re-load all of your replays in future improved versions if you choose to use this early version.
 
 sc2BarcodeWho is a tool to identify who barcodes are in the game StarCraft 2. 
 This tool is designed for pro players since they have thousands of games, 
@@ -133,6 +133,24 @@ Test if you can then "Classify the most recent replay".</summary>
 ### Basic usage
 
 Play a game on ladder, and queue a new game if you want. In the meantime, start this tool with the shortcut created in the installation process and press "classify most recent game" and the result will come out after ~3 seconds as text in the command prompt. I recommend closing the program before your next game since it can take up a lot of RAM memory otherwise. I also recommend using it on non-barcodes to learn which players the tool works on and which players it does not work on.
+
+#### Example of how to interpret the result
+
+Below is an image that shows how the output of a classification can look. First just note that it classifies both players in the replay, and for each player it shows the result from two different classifiers.
+
+![interpret results](https://user-images.githubusercontent.com/48488386/232547631-f7914f43-4b87-4ee7-89e5-c4a667b955de.png)
+
+Let's assume that we are player 2 in this case, and we are interested in finding out who the barcode player 1 is. The thought process from 0. to 4. indicated in the image is as follows:
+
+0. First we check the name history of the account. In this case we got lucky and see that this same account used to be called Lambo in another replay that we have. Since anyone can name themself Lambo this should still be taken with a grain of salt.
+1. Let's pretend that step 0 did not reveal that it was Lambo and try to figure out who it is with other information. Step 1 is then to check the first classifier, which is generally more accurate. Here we see that the first guess is Epic. (You might know that that Epic is a Terran and Lambo is a Zerg, but Lambo played terran in this game so the program looks for terran player profiles.)
+2. The second step is to check if Epic stands out as a guess or if it simply happens to be the first guess by a small ammount. Here we compare the "dist" between the first guess and the second guess. In this case we see that they are very similar; the dist between the first guess and the second is very similar to the dist between the second and third and so on. This indicates that Epic might just happen to be the first guess since someone had to be the first guess. If the value was something like 4.18 it would stand out much more and be a more reliable guess.
+3. Now let's check the other classifier. This classifier is typically less accurate so if we simply see epic anywhere in the top 7 list that is normally an indication that the first classifier is probably correct. We do not see epic, so typically here we would stop and conclude that we don't know who it is.
+4. However, we see many of Kelazhurs accounts in step 3 and it is also as 2nd and 3rd place for the first classifier. Since the two classifiers are essentially **independent**, this is an indication that it might indeed be Kelazhur. 
+
+#### Final conclusion
+
+The final step is to think if the top guess matches the mmr and playstyle of the person you just played. If not, the result is probably wrong. However, if they do match, I would guess in this exact scenario (assuming we did not know that it was Lambo) that there is a 60-85% chance of this being kelahur assuming they played similar to kelazhur and the mmr matches. This example is a good lesson not to trust this program too much, even though it really seems like Kelazhur at first glance it was actually Lambo. As a final note, the fact that there are multiple Kelazhurs is because each account and server is treated separately. The fact that all accounts show up in the top does not say much and should mostly be ignored, it is only a slight positive indication.
 
 
 ### Good to know when using
